@@ -1,10 +1,5 @@
 # Laravel + shadcn/ui + InertiaJS Starter Template
 
-![Laravel + shadcn/ui + InertiaJS Starter Template](https://raw.githubusercontent.com/mahmudz/laravel-shadcn-app-panel/main/public/repository-cover.png)
-
-This is a template to start building a custom user/admin panel quickly.
-Feel free to customize this template to fit the specific needs of your Laravel application!
-
 ## Technologies
 
 - [Laravel 12](https://laravel.com/docs/)
@@ -22,7 +17,7 @@ Before you begin, ensure you have met the following requirements:
 
 ## Installation
 
-1. Clone the repository: `git clone https://github.com/mahmudz/laravel-shadcn-app-panel.git`
+1. Clone the repository: `git clone https://github.com/shscar/Terms-of-Reference-TOR.git`
 2. Navigate into the project directory: `cd [project directory]`
 3. Install PHP dependencies: `composer install`
 4. Copy `.env.example` to `.env` and configure your environment variables, including database settings and application key.
@@ -43,4 +38,4 @@ Access the application in your browser at `http://localhost:8000` by default.
 
 ## Contact
 
-If you have any questions, feedback, or support requests, you can reach me here [mahmudbappy.pri@gmail.com](https://github.com/mahmudz/laravel-shadcn-app-panel.git)
+If you have any questions, feedback, or support requests, you can reach me here [ahmadghozali87621@gmail.com](https://github.com/shscar/Terms-of-Reference-TOR.git)
