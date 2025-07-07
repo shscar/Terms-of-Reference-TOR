@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-// import { type SharedData } from '@/types';
+import { type SharedData } from '@/types';
 import { usePage } from '@inertiajs/react';
 import {
     Menu,
@@ -32,7 +32,7 @@ import { Badge } from '@/components/ui/badge';
 
 const Navbar = () => {
 
-    // const { auth } = usePage<SharedData>().props;
+    const { auth } = usePage<SharedData>().props;
 
     const [isOpen, setIsOpen] = useState(false);
     const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
@@ -169,11 +169,34 @@ const Navbar = () => {
                             )}
                         </Button>
 
+                        {/* Auth Buttons or User Menu */}
+                        {auth.user ? (
+                            <div className="flex items-center space-x-4">
+                                {/* Notifications */}
+                                {/* <Button variant="ghost" size="icon" className="h-9 w-9 relative">
+                                    <Bell className="h-4 w-4" />
+                                    <Badge className="absolute -top-1 -right-1 h-5 w-5 text-xs p-0 flex items-center justify-center">
+                                        3
+                                    </Badge>
+                                </Button> */}
+
+                                <Button
+                                    variant="default"
+                                    onClick={() => {
+                                        (window.location.href = route('dashboard'))
+                                    }}
+                                    // className="h-9 border border-primary text-primary"
+                                    className={`h-9 border ${isDarkMode ? 'border-white' : 'border-black'}`}
+                                >
+                                    Dashboard
+                                </Button>
+                            </div>
+                        ) : (
                             <div className="flex items-center space-x-2">
                                 <Button
                                     variant="outline"
                                     onClick={() => {
-                                        // (window.location.href = route('login'))
+                                        (window.location.href = route('login'))
                                     }}
                                     className="h-9 border border-primary text-primary"
                                 >
@@ -182,13 +205,14 @@ const Navbar = () => {
                                 <Button
                                     variant="default"
                                     onClick={() => {
-                                        // (window.location.href = route('register'))
+                                        (window.location.href = route('register'))
                                     }}
                                     className={`h-9 border ${isDarkMode ? 'border-white' : 'border-black'}`}
                                 >
                                     Register
                                 </Button>
                             </div>
+                        )}
                     </div>
 
                     {/* Mobile Menu Button */}
@@ -280,6 +304,27 @@ const Navbar = () => {
                                     )}
                                 </Button>
 
+                                {auth.user ? (
+                                    <div className="space-x-4">
+                                        {/* Notifications */}
+                                        <Button variant="ghost" size="icon" className="h-9 w-9 relative">
+                                            <Bell className="h-4 w-4" />
+                                            <Badge className="absolute -top-1 -right-1 h-5 w-5 text-xs p-0 flex items-center justify-center">
+                                                3
+                                            </Badge>
+                                        </Button>
+
+                                        <Button
+                                            variant="ghost"
+                                            onClick={() => {
+                                                (window.location.href = route('dashboard'))
+                                            }}
+                                            className="w-full h-10"
+                                        >
+                                            Dashboard
+                                        </Button>
+                                    </div>
+                                ) : (
                                     <>
                                         {/* <Button variant="ghost" className="w-full justify-start h-10">
                                             <Bell className="mr-2 h-4 w-4" />
@@ -291,7 +336,7 @@ const Navbar = () => {
                                             <Button
                                                 variant="ghost"
                                                 onClick={() => {
-                                                    // (window.location.href = route('login'))
+                                                    (window.location.href = route('login'))
                                                 }}
                                                 className="w-full h-10"
                                             >
@@ -299,7 +344,7 @@ const Navbar = () => {
                                             </Button>
                                             <Button
                                                 onClick={() => {
-                                                    // (window.location.href = route('register'))
+                                                    (window.location.href = route('register'))
                                                 }}
                                                 className="w-full h-10"
                                             >
@@ -307,6 +352,7 @@ const Navbar = () => {
                                             </Button>
                                         </div>
                                     </>
+                                )}
 
                             </div>
                         </div>

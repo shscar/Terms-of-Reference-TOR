@@ -1,140 +1,110 @@
-import React, { useState } from 'react';
-import { User, Mail, Lock, ArrowRight } from 'lucide-react';
-import { FormInput } from '@/components/forminput';
+import { Head, useForm } from '@inertiajs/react';
+import { LoaderCircle } from 'lucide-react';
+import { FormEventHandler } from 'react';
 
-export const LoginPage = ({ onSwitchToRegister, onLogin }) => {
-    const [formData, setFormData] = useState({
+import InputError from '@/components/input-error';
+import TextLink from '@/components/text-link';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import AuthLayout from '@/layouts/auth-layout';
+
+type LoginForm = {
+    email: string;
+    password: string;
+    remember: boolean;
+};
+
+interface LoginProps {
+    status?: string;
+    canResetPassword: boolean;
+}
+
+export default function Login({ status, canResetPassword }: LoginProps) {
+    const { data, setData, post, processing, errors, reset } = useForm<Required<LoginForm>>({
         email: '',
-        password: ''
+        password: '',
+        remember: false,
     });
-    const [errors, setErrors] = useState({});
-    const [isLoading, setIsLoading] = useState(false);
 
-    const handleInputChange = (field, value) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
-        if (errors[field]) {
-            setErrors(prev => ({ ...prev, [field]: '' }));
-        }
-    };
-
-    const validateForm = () => {
-        const newErrors = {};
-
-        if (!formData.email) {
-            newErrors.email = 'Email is required';
-        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            newErrors.email = 'Please enter a valid email';
-        }
-
-        if (!formData.password) {
-            newErrors.password = 'Password is required';
-        } else if (formData.password.length < 6) {
-            newErrors.password = 'Password must be at least 6 characters';
-        }
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
-    const handleSubmit = async () => {
-        if (!validateForm()) return;
-
-        setIsLoading(true);
-
-        // Simulate API call
-        setTimeout(() => {
-            setIsLoading(false);
-            onLogin(formData);
-        }, 1000);
+    const submit: FormEventHandler = (e) => {
+        e.preventDefault();
+        post(route('login'), {
+            onFinish: () => reset('password'),
+        });
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8">
-                <div className="text-center">
-                    <div className="mx-auto h-16 w-16 bg-blue-500 rounded-full flex items-center justify-center mb-6">
-                        <User className="h-8 w-8 text-white" />
-                    </div>
-                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-                        Welcome back
-                    </h2>
-                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                        Sign in to your account
-                    </p>
-                </div>
+        <AuthLayout title="Log in to your account" description="Enter your email and password below to log in">
+            <Head title="Log in" />
 
-                <div className="mt-8 space-y-6 bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg">
-                    <div className="space-y-4">
-                        <FormInput
-                            label="Email Address"
+            <form className="flex flex-col gap-6" onSubmit={submit}>
+                <div className="grid gap-6">
+                    <div className="grid gap-2">
+                        <Label htmlFor="email">Email address</Label>
+                        <Input
+                            id="email"
                             type="email"
-                            placeholder="Enter your email"
-                            value={formData.email}
-                            onChange={(e) => handleInputChange('email', e.target.value)}
-                            error={errors.email}
-                            icon={Mail}
+                            required
+                            autoFocus
+                            tabIndex={1}
+                            autoComplete="email"
+                            value={data.email}
+                            onChange={(e) => setData('email', e.target.value)}
+                            placeholder="email@example.com"
                         />
+                        <InputError message={errors.email} />
+                    </div>
 
-                        <FormInput
-                            label="Password"
+                    <div className="grid gap-2">
+                        <div className="flex items-center">
+                            <Label htmlFor="password">Password</Label>
+                            {canResetPassword && (
+                                <TextLink href={route('password.request')} className="ml-auto text-sm" tabIndex={5}>
+                                    Forgot password?
+                                </TextLink>
+                            )}
+                        </div>
+                        <Input
+                            id="password"
                             type="password"
-                            placeholder="Enter your password"
-                            value={formData.password}
-                            onChange={(e) => handleInputChange('password', e.target.value)}
-                            error={errors.password}
-                            icon={Lock}
-                            showPasswordToggle={true}
+                            required
+                            tabIndex={2}
+                            autoComplete="current-password"
+                            value={data.password}
+                            onChange={(e) => setData('password', e.target.value)}
+                            placeholder="Password"
                         />
+                        <InputError message={errors.password} />
                     </div>
 
-                    <div className="flex items-center justify-between">
-                        <label className="flex items-center">
-                            <input
-                                type="checkbox"
-                                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                            />
-                            <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
-                                Remember me
-                            </span>
-                        </label>
-                        <a href="#" className="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400">
-                            Forgot password?
-                        </a>
+                    <div className="flex items-center space-x-3">
+                        <Checkbox
+                            id="remember"
+                            name="remember"
+                            checked={data.remember}
+                            onClick={() => setData('remember', !data.remember)}
+                            tabIndex={3}
+                        />
+                        <Label htmlFor="remember">Remember me</Label>
                     </div>
 
-                    <button
-                        onClick={handleSubmit}
-                        disabled={isLoading}
-                        className="group relative w-full flex justify-center py-3 px-4 border border-transparent
-              text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700
-              focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
-              disabled:opacity-50 disabled:cursor-not-allowed
-              transition-all duration-200 transform hover:scale-[1.02]"
-                    >
-                        {isLoading ? (
-                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                            <>
-                                Sign in
-                                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                            </>
-                        )}
-                    </button>
-
-                    <div className="text-center">
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Don't have an account?{' '}
-                            <button
-                                type="button"
-                                onClick={onSwitchToRegister}
-                                className="text-blue-600 hover:text-blue-500 dark:text-blue-400 font-medium"
-                            >
-                                Sign up now
-                            </button>
-                        </p>
-                    </div>
+                    <Button type="submit" className="mt-4 w-full" tabIndex={4} disabled={processing}>
+                        {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
+                        Log in
+                    </Button>
                 </div>
-            </div>
-        </div>
+
+                <div className="text-center text-sm text-muted-foreground">
+                    Don't have an account?{' '}
+                    <TextLink href={route('register')} tabIndex={5}>
+                        Sign up
+                    </TextLink>
+                </div>
+            </form>
+
+            {status && <div className="mb-4 text-center text-sm font-medium text-green-600">{status}</div>}
+        </AuthLayout>
     );
-};
+}
