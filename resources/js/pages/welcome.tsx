@@ -1,4 +1,5 @@
 // resources/js/Layouts/LandingLayout.tsx
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import Navbar from "@/components/landing/navbar"
 import Footer from "@/components/landing/footer"
