@@ -31,7 +31,7 @@ Before you begin, ensure you have met the following requirements:
 To start the development server, run:
 
 ```
-php artisan serve
+composer run dev
 ```
 
 Access the application in your browser at `http://localhost:8000` by default.
