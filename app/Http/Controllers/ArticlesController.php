@@ -6,6 +6,10 @@ use App\Models\Articles;
 use App\Http\Requests\StoreArticlesRequest;
 use App\Http\Requests\UpdateArticlesRequest;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+
+use Illuminate\Http\Request;
 
 class ArticlesController extends Controller
 {
@@ -14,17 +18,9 @@ class ArticlesController extends Controller
      */
     public function index()
     {
-        return Inertia::render('Dashboard/articles', [
-            // 'articles' => Articles::all()->map(function ($article) {
-            //     return [
-            //         'id' => $article->id,
-            //         'title' => $article->title,
-            //         'classification' => $article->classification,
-            //         'threat' => $article->threat,
-            //         'status' => $article->status,
-            //         'created_at' => $article->created_at->format('Y-m-d H:i:s'),
-            //     ];
-            // }),
+        $articles = Articles::all();
+        return Inertia::render('dashboard/articles', [
+            'articles' => $articles
         ]);
     }
 
@@ -39,17 +35,40 @@ class ArticlesController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreArticlesRequest $request)
+    public function store(Request $request)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'title' => 'required|string|max:255',
+            'content' => 'required|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Validation error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $articles = Articles::create($request->all());
+        return response()->json([
+            'status' => true,
+            'message' => 'Articles created successfully',
+            'data' => $articles
+        ], 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Articles $articles)
+    public function show(Articles $articles, $id)
     {
-        //
+        $articles = Articles::findOrFail($id);
+        return response()->json([
+            'status' => true,
+            'message' => 'Articles found successfully',
+            'data' => $articles
+        ], 200);
     }
 
     /**
@@ -63,16 +82,106 @@ class ArticlesController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateArticlesRequest $request, Articles $articles)
+    public function update(Request $request, $id)
     {
-        //
+        // $validator = Validator::make($request->all(), [
+        //     'title' => 'sometimes|required|string|max:255',
+        //     'content' => 'sometimes|required|string,' . $id,
+        // ]);
+        // // $request->validate([
+        // //     'title' => 'required|string|max:255',
+        // //     'content' => 'required|string',
+        // // ]);
+
+        // if ($validator->fails()) {
+        //     return response()->json([
+        //         'status' => false,
+        //         'message' => 'Validation error',
+        //         'errors' => $validator->errors()
+        //     ], 422);
+        // }
+
+        // $articles = Articles::findOrFail($id);
+        // $articles->update($request->all());
+
+        // return response()->json([
+        //     'status' => true,
+        //     'message' => 'articles updated successfully',
+        //     'data' => $articles
+        // ], 200);
+
+
+        $request->validate([
+            'title' => 'sometimes|required|string|max:255',
+            'content' => 'sometimes|required|string',
+        ]);
+
+        $articles = Articles::findOrFail($id);
+
+        if ($request->has('title')) {
+            $articles->title = $request->input('title');
+        }
+
+        if ($request->has('content')) {
+            $articles->content = $request->input('content');
+        }
+
+        $articles->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Article updated successfully',
+            'data' => $articles
+        ], 200);
+
+
+        // try {
+        //     $request->validate([
+        //         'title' => 'sometimes|required|string|max:255',
+        //         'content' => 'sometimes|required|string',
+        //     ]);
+
+        //     $articles = Articles::findOrFail($id);
+
+        //     // Hanya memperbarui jika nilai tidak null
+        //     if ($request->has('title')) {
+        //         $articles->title = $request->input('title');
+        //     }
+        //     if ($request->has('content')) {
+        //         $articles->content = $request->input('content');
+        //     }
+
+        //     $articles->save();
+
+        //     return response()->json([
+        //         'status' => true,
+        //         'message' => 'Articles found successfully',
+        //         'data' => $articles
+        //     ], 200);
+        // } catch (ModelNotFoundException $e) {
+        //     return response()->json([
+        //         'status' => false,
+        //         'message' => 'Article not found'
+        //     ], 404);
+        // } catch (\Exception $e) {
+        //     return response()->json([
+        //         'status' => false,
+        //         'message' => 'An error occurred: ' . $e->getMessage()
+        //     ], 500);
+        // }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Articles $articles)
+    public function destroy(Articles $articles, $id)
     {
-        //
+        $articles = Articles::findOrFail($id);
+        $articles->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Articles deleted successfully'
+        ], 204);
     }
 }

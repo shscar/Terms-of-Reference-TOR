@@ -14,7 +14,7 @@ class ServiceController extends Controller
      */
     public function index()
     {
-        return Inertia::render('Dashboard/service', [
+        return Inertia::render('dashboard/service', [
         ]);
     }
 

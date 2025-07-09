@@ -9,4 +9,6 @@ class Articles extends Model
 {
     /** @use HasFactory<\Database\Factories\ArticlesFactory> */
     use HasFactory;
+
+    protected $fillable = ['title', 'content'];
 }
