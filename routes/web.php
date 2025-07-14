@@ -5,10 +5,9 @@ use Inertia\Inertia;
 
 use App\Http\Controllers\ArticlesController;
 use App\Http\Controllers\ServiceController;
-use App\Models\Articles;
 
 Route::get('/', function () {
-    return Inertia::render('welcome');
+    return Inertia::render('landing/home');
 })->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -18,8 +17,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('dashboard/dashboard');
     })->name('dashboard');
 
-    // Route::get('services', [ServiceController::class, 'index'])->name('dashboard/services');
-    Route::get('articles', [ArticlesController::class, 'index'])->name('dashboard/articles');
+    Route::get('articles', [ArticlesController::class, 'index'])->name('dashboard-articles');
+    Route::get('services', [ServiceController::class, 'index'])->name('dashboard-services');
 
 
     // Route::get('service', function () {

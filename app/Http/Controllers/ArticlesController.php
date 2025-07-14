@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+
 use App\Models\Articles;
 use App\Http\Requests\StoreArticlesRequest;
 use App\Http\Requests\UpdateArticlesRequest;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-
-use Illuminate\Http\Request;
 
 class ArticlesController extends Controller
 {
@@ -84,6 +85,16 @@ class ArticlesController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $data = $request->validate([
+            'title'   => 'required|string|max:255',
+            'content' => 'required|string',
+        ]);
+
+        $article = Articles::findOrFail($id);
+        $article->update($data);
+        return response()->json($article);
+
+
         // $validator = Validator::make($request->all(), [
         //     'title' => 'sometimes|required|string|max:255',
         //     'content' => 'sometimes|required|string,' . $id,
@@ -111,28 +122,28 @@ class ArticlesController extends Controller
         // ], 200);
 
 
-        $request->validate([
-            'title' => 'sometimes|required|string|max:255',
-            'content' => 'sometimes|required|string',
-        ]);
+        // $request->validate([
+        //     'title' => 'sometimes|required|string|max:255',
+        //     'content' => 'sometimes|required|string',
+        // ]);
 
-        $articles = Articles::findOrFail($id);
+        // $articles = Articles::findOrFail($id);
 
-        if ($request->has('title')) {
-            $articles->title = $request->input('title');
-        }
+        // if ($request->has('title')) {
+        //     $articles->title = $request->input('title');
+        // }
 
-        if ($request->has('content')) {
-            $articles->content = $request->input('content');
-        }
+        // if ($request->has('content')) {
+        //     $articles->content = $request->input('content');
+        // }
 
-        $articles->save();
+        // $articles->save();
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Article updated successfully',
-            'data' => $articles
-        ], 200);
+        // return response()->json([
+        //     'status' => true,
+        //     'message' => 'Article updated successfully',
+        //     'data' => $articles
+        // ], 200);
 
 
         // try {
