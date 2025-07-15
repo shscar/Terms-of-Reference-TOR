@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { AlertTriangle, Download, Eye, FileText, Filter, Globe, Search, Shield } from 'lucide-react';
 import { useState } from 'react';
+import NewArticleModal from '@/components/NewArticleModal'; // Adjust the import path as needed
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -16,7 +17,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-type Report = {
+type Article = {
     id: string;
     title: string;
     classification: string;
@@ -31,9 +32,10 @@ type Report = {
 
 export default function IntelligencePage() {
     const [searchTerm, setSearchTerm] = useState('');
-    const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+    const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+    const [isNewArticleModalOpen, setIsNewArticleModalOpen] = useState(false);
 
-    const reports: Report[] = [
+    const [articles, setArticles] = useState<Article[]>([
         {
             id: 'INT-2025-001',
             title: 'CYBERCRIME NETWORK ANALYSIS',
@@ -94,7 +96,11 @@ export default function IntelligencePage() {
             summary: 'Political developments affecting regional security and operational considerations',
             tags: ['diplomatic', 'political', 'regional'],
         },
-    ];
+    ]);
+
+    const handleNewArticle = (newArticle: Article) => {
+        setArticles(prev => [newArticle, ...prev]);
+    };
 
     const getClassificationColor = (classification: string) => {
         switch (classification) {
@@ -167,11 +173,11 @@ export default function IntelligencePage() {
         }
     };
 
-    const filteredReports = reports.filter(
-        (report) =>
-            report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            report.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            report.tags.some((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase())),
+    const filteredArticles = articles.filter(
+        (article) =>
+            article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            article.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            article.tags.some((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase())),
     );
 
     return (
@@ -186,7 +192,7 @@ export default function IntelligencePage() {
                         <p className="text-sm text-muted-foreground">Classified article and analysis</p>
                     </div>
                     <div className="flex gap-2">
-                        <Button>New Report</Button>
+                        <Button onClick={() => setIsNewArticleModalOpen(true)}>New Article</Button>
                         <Button variant="outline">
                             <Filter className="mr-2 h-4 w-4" />
                             Filter
@@ -201,7 +207,7 @@ export default function IntelligencePage() {
                             <div className="relative">
                                 <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
                                 <Input
-                                    placeholder="Search article reports..."
+                                    placeholder="Search article articles..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     className="pl-10"
@@ -214,8 +220,8 @@ export default function IntelligencePage() {
                         <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-xs tracking-wider text-muted-foreground">TOTAL REPORTS</p>
-                                    <p className="font-mono text-2xl font-bold text-foreground">1,247</p>
+                                    <p className="text-xs tracking-wider text-muted-foreground">TOTAL ARTICLES</p>
+                                    <p className="font-mono text-2xl font-bold text-foreground">{articles.length}</p>
                                 </div>
                                 <FileText className="h-8 w-8 text-muted-foreground" />
                             </div>
@@ -227,7 +233,9 @@ export default function IntelligencePage() {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-xs tracking-wider text-muted-foreground">CRITICAL THREATS</p>
-                                    <p className="font-mono text-2xl font-bold text-red-500 dark:text-red-400">12</p>
+                                    <p className="font-mono text-2xl font-bold text-red-500 dark:text-red-400">
+                                        {articles.filter(r => r.threat === 'critical').length}
+                                    </p>
                                 </div>
                                 <AlertTriangle className="h-8 w-8 text-red-500 dark:text-red-400" />
                             </div>
@@ -239,7 +247,9 @@ export default function IntelligencePage() {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-xs tracking-wider text-muted-foreground">ACTIVE SOURCES</p>
-                                    <p className="font-mono text-2xl font-bold text-foreground">89</p>
+                                    <p className="font-mono text-2xl font-bold text-foreground">
+                                        {new Set(articles.map(r => r.source)).size}
+                                    </p>
                                 </div>
                                 <Globe className="h-8 w-8 text-muted-foreground" />
                             </div>
@@ -247,33 +257,33 @@ export default function IntelligencePage() {
                     </Card>
                 </div>
 
-                {/* Article Reports */}
+                {/* Article Articles */}
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-sm font-medium tracking-wider text-muted-foreground">ARTICLE REPORTS</CardTitle>
+                        <CardTitle className="text-sm font-medium tracking-wider text-muted-foreground">ARTICLE ARTICLE</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
-                            {filteredReports.map((report) => (
+                            {filteredArticles.map((article) => (
                                 <div
-                                    key={report.id}
+                                    key={article.id}
                                     className="cursor-pointer rounded-lg border border-border p-4 transition-all duration-200 hover:border-primary/50 hover:bg-accent/50 hover:shadow-sm"
-                                    onClick={() => setSelectedReport(report)}
+                                    onClick={() => setSelectedArticle(article)}
                                 >
                                     <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
                                         <div className="flex-1 space-y-2">
                                             <div className="flex items-start gap-3">
                                                 <FileText className="mt-0.5 h-5 w-5 text-muted-foreground" />
                                                 <div className="flex-1">
-                                                    <h3 className="text-sm font-bold tracking-wider text-foreground">{report.title}</h3>
-                                                    <p className="font-mono text-xs text-muted-foreground">{report.id}</p>
+                                                    <h3 className="text-sm font-bold tracking-wider text-foreground">{article.title}</h3>
+                                                    <p className="font-mono text-xs text-muted-foreground">{article.id}</p>
                                                 </div>
                                             </div>
 
-                                            <p className="ml-8 text-sm text-muted-foreground">{report.summary}</p>
+                                            <p className="ml-8 text-sm text-muted-foreground">{article.summary}</p>
 
                                             <div className="ml-8 flex flex-wrap gap-2">
-                                                {report.tags.map((tag) => (
+                                                {article.tags.map((tag) => (
                                                     <Badge key={tag} variant="secondary" className="text-xs">
                                                         {tag}
                                                     </Badge>
@@ -283,23 +293,23 @@ export default function IntelligencePage() {
 
                                         <div className="flex flex-col gap-2 sm:items-end">
                                             <div className="flex flex-wrap gap-2">
-                                                <Badge className={`${getClassificationColor(report.classification)} border`}>
-                                                    {report.classification}
+                                                <Badge className={`${getClassificationColor(article.classification)} border`}>
+                                                    {article.classification}
                                                 </Badge>
-                                                <Badge className={`${getThreatColor(report.threat)} border`}>{report.threat.toUpperCase()}</Badge>
-                                                <Badge className={`${getStatusColor(report.status)} border`}>{report.status.toUpperCase()}</Badge>
+                                                <Badge className={`${getThreatColor(article.threat)} border`}>{article.threat.toUpperCase()}</Badge>
+                                                <Badge className={`${getStatusColor(article.status)} border`}>{article.status.toUpperCase()}</Badge>
                                             </div>
 
                                             <div className="space-y-1 text-xs text-muted-foreground">
                                                 <div className="flex items-center gap-2">
                                                     <Globe className="h-3 w-3" />
-                                                    <span>{report.location}</span>
+                                                    <span>{article.location}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <Shield className="h-3 w-3" />
-                                                    <span>{report.source}</span>
+                                                    <span>{article.source}</span>
                                                 </div>
-                                                <div className="font-mono">{report.date}</div>
+                                                <div className="font-mono">{article.date}</div>
                                             </div>
                                         </div>
                                     </div>
@@ -309,19 +319,19 @@ export default function IntelligencePage() {
                     </CardContent>
                 </Card>
 
-                {/* Report Detail Modal */}
-                {selectedReport && (
+                {/* Article Detail Modal */}
+                {selectedArticle && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
                         <Card className="max-h-[90vh] w-full max-w-4xl overflow-y-auto">
                             <CardHeader className="flex flex-row items-center justify-between border-b border-border">
                                 <div>
-                                    <CardTitle className="text-xl font-bold tracking-wider text-foreground">{selectedReport.title}</CardTitle>
-                                    <p className="font-mono text-sm text-muted-foreground">{selectedReport.id}</p>
+                                    <CardTitle className="text-xl font-bold tracking-wider text-foreground">{selectedArticle.title}</CardTitle>
+                                    <p className="font-mono text-sm text-muted-foreground">{selectedArticle.id}</p>
                                 </div>
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => setSelectedReport(null)}
+                                    onClick={() => setSelectedArticle(null)}
                                     className="text-muted-foreground hover:text-foreground"
                                 >
                                     ✕
@@ -333,11 +343,11 @@ export default function IntelligencePage() {
                                         <div>
                                             <h3 className="mb-2 text-sm font-medium tracking-wider text-muted-foreground">CLASSIFICATION</h3>
                                             <div className="flex gap-2">
-                                                <Badge className={`${getClassificationColor(selectedReport.classification)} border`}>
-                                                    {selectedReport.classification}
+                                                <Badge className={`${getClassificationColor(selectedArticle.classification)} border`}>
+                                                    {selectedArticle.classification}
                                                 </Badge>
-                                                <Badge className={`${getThreatColor(selectedReport.threat)} border`}>
-                                                    THREAT: {selectedReport.threat.toUpperCase()}
+                                                <Badge className={`${getThreatColor(selectedArticle.threat)} border`}>
+                                                    THREAT: {selectedArticle.threat.toUpperCase()}
                                                 </Badge>
                                             </div>
                                         </div>
@@ -347,20 +357,20 @@ export default function IntelligencePage() {
                                             <div className="space-y-2 text-sm">
                                                 <div className="flex justify-between">
                                                     <span className="text-muted-foreground">Source Type:</span>
-                                                    <span className="font-mono text-foreground">{selectedReport.source}</span>
+                                                    <span className="font-mono text-foreground">{selectedArticle.source}</span>
                                                 </div>
                                                 <div className="flex justify-between">
                                                     <span className="text-muted-foreground">Location:</span>
-                                                    <span className="text-foreground">{selectedReport.location}</span>
+                                                    <span className="text-foreground">{selectedArticle.location}</span>
                                                 </div>
                                                 <div className="flex justify-between">
                                                     <span className="text-muted-foreground">Date:</span>
-                                                    <span className="font-mono text-foreground">{selectedReport.date}</span>
+                                                    <span className="font-mono text-foreground">{selectedArticle.date}</span>
                                                 </div>
                                                 <div className="flex justify-between">
                                                     <span className="text-muted-foreground">Status:</span>
-                                                    <Badge className={`${getStatusColor(selectedReport.status)} border`}>
-                                                        {selectedReport.status.toUpperCase()}
+                                                    <Badge className={`${getStatusColor(selectedArticle.status)} border`}>
+                                                        {selectedArticle.status.toUpperCase()}
                                                     </Badge>
                                                 </div>
                                             </div>
@@ -371,7 +381,7 @@ export default function IntelligencePage() {
                                         <div>
                                             <h3 className="mb-2 text-sm font-medium tracking-wider text-muted-foreground">TAGS</h3>
                                             <div className="flex flex-wrap gap-2">
-                                                {selectedReport.tags.map((tag) => (
+                                                {selectedArticle.tags.map((tag) => (
                                                     <Badge key={tag} variant="secondary">
                                                         {tag}
                                                     </Badge>
@@ -384,13 +394,13 @@ export default function IntelligencePage() {
                                             <div className="space-y-2">
                                                 <div className="flex justify-between text-sm">
                                                     <span className="text-muted-foreground">Threat Level</span>
-                                                    <Badge className={`${getThreatColor(selectedReport.threat)} border`}>
-                                                        {selectedReport.threat.toUpperCase()}
+                                                    <Badge className={`${getThreatColor(selectedArticle.threat)} border`}>
+                                                        {selectedArticle.threat.toUpperCase()}
                                                     </Badge>
                                                 </div>
                                                 <div className="h-2 w-full rounded-full bg-muted">
                                                     <div
-                                                        className={`h-2 rounded-full transition-all duration-300 ${getThreatProgressWidth(selectedReport.threat)} ${getThreatProgressColor(selectedReport.threat)}`}
+                                                        className={`h-2 rounded-full transition-all duration-300 ${getThreatProgressWidth(selectedArticle.threat)} ${getThreatProgressColor(selectedArticle.threat)}`}
                                                     ></div>
                                                 </div>
                                             </div>
@@ -400,13 +410,13 @@ export default function IntelligencePage() {
 
                                 <div>
                                     <h3 className="mb-2 text-sm font-medium tracking-wider text-muted-foreground">EXECUTIVE SUMMARY</h3>
-                                    <p className="text-sm leading-relaxed text-foreground">{selectedReport.summary}</p>
+                                    <p className="text-sm leading-relaxed text-foreground">{selectedArticle.summary}</p>
                                 </div>
 
                                 <div className="flex gap-2 border-t border-border pt-4">
                                     <Button>
                                         <Eye className="mr-2 h-4 w-4" />
-                                        View Full Report
+                                        View Full Article
                                     </Button>
                                     <Button variant="outline">
                                         <Download className="mr-2 h-4 w-4" />
@@ -418,6 +428,13 @@ export default function IntelligencePage() {
                         </Card>
                     </div>
                 )}
+
+                {/* New Article Modal */}
+                <NewArticleModal
+                    isOpen={isNewArticleModalOpen}
+                    onClose={() => setIsNewArticleModalOpen(false)}
+                    onSubmit={handleNewArticle}
+                />
             </div>
         </AppLayout>
     );
