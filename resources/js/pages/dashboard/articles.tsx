@@ -430,10 +430,33 @@ export default function IntelligencePage() {
                 )}
 
                 {/* New Article Modal */}
-                <NewArticleModal
+                {/* <NewArticleModal
                     isOpen={isNewArticleModalOpen}
                     onClose={() => setIsNewArticleModalOpen(false)}
                     onSubmit={handleNewArticle}
+                /> */}
+
+                {/* Untuk create */}
+                <NewArticleModal
+                    isOpen={isNewArticleModalOpen}
+                    onClose={() => setIsNewArticleModalOpen(false)}
+                    onSubmit={(article) => {
+                        // Handle success
+                        console.log('Article created:', article);
+                        // Refresh list atau update state
+                    }}
+                />
+
+                {/* Untuk edit */}
+                <NewArticleModal
+                    isOpen={isNewArticleModalOpen}
+                    onClose={() => setIsNewArticleModalOpen(false)}
+                    editingArticle={selectedArticle}
+                    onSubmit={(article) => {
+                        // Handle success
+                        console.log('Article updated:', article);
+                        // Update list atau refresh data
+                    }}
                 />
             </div>
         </AppLayout>

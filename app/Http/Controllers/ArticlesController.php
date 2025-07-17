@@ -40,7 +40,9 @@ class ArticlesController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
-            'content' => 'required|string|max:255',
+            'summary' => 'required|string',
+            'tags' => 'array',
+            'status' => 'string|in:pending,published,archived'
         ]);
 
         if ($validator->fails()) {
@@ -83,16 +85,22 @@ class ArticlesController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $id, Articles $articles)
     {
         $data = $request->validate([
-            'title'   => 'required|string|max:255',
-            'content' => 'required|string',
+            'title' => 'required|string|max:255',
+            'summary' => 'required|string',
+            'tags' => 'array',
+            'status' => 'string|in:pending,published,archived'
         ]);
 
-        $article = Articles::findOrFail($id);
-        $article->update($data);
-        return response()->json($article);
+        $articles->update($data);
+
+        return response()->json([
+            'success' => true,
+            'data' => $articles,
+            'message' => 'Article updated successfully'
+        ]);
 
 
         // $validator = Validator::make($request->all(), [
