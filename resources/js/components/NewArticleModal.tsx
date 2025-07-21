@@ -1,409 +1,272 @@
-import { useState, useRef } from 'react';
-import { Badge } from '@/components/ui/badge';
+import { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { X, Plus, Minus } from 'lucide-react';
-import { Editor } from '@tinymce/tinymce-react';
-import { TINYMCE_CONFIG } from '../../../config/tinymce';
-
-// Types untuk API response
-interface ApiResponse<T> {
-    success: boolean;
-    data?: T;
-    message?: string;
-    errors?: Record<string, string[]>;
-}
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { X } from 'lucide-react';
+import TinyMCEEditor from './TinyMCEEditor';
 
 interface Article {
-    id?: number;
+    id: string;
     title: string;
-    summary: string;
+    classification: string;
+    source: string;
+    location: string;
+    date: string;
+    status: string;
+    threat: string;
+    content?: string;
     tags: string[];
-    status?: string;
-    created_at?: string;
-    updated_at?: string;
 }
 
 interface NewArticleModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSubmit: (article: Article) => void;
-    editingArticle?: Article | null; // Support untuk edit mode
-}
-
-// API Service
-class ArticleService {
-    private static baseURL = 'http://localhost:8000/api';
-
-    static async createArticle(articleData: Partial<Article>): Promise<ApiResponse<Article>> {
-        const response = await fetch(`${this.baseURL}/articles`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`, // Jika menggunakan authentication
-            },
-            body: JSON.stringify(articleData)
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || 'Failed to create article');
-        }
-
-        return data;
-    }
-
-    static async updateArticle(id: number, articleData: Partial<Article>): Promise<ApiResponse<Article>> {
-        const response = await fetch(`${this.baseURL}/articles/${id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            },
-            body: JSON.stringify(articleData)
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || 'Failed to update article');
-        }
-
-        return data;
-    }
+    editingArticle?: Article | null;
 }
 
 export default function NewArticleModal({
     isOpen,
     onClose,
     onSubmit,
-    editingArticle = null
+    editingArticle = null,
 }: NewArticleModalProps) {
-    const [formData, setFormData] = useState<Partial<Article>>({
+    const [formData, setFormData] = useState({
         title: '',
-        summary: '',
-        tags: [],
+        classification: 'CONFIDENTIAL',
+        source: 'OSINT',
+        location: '',
+        status: 'pending',
+        threat: 'low',
+        content: '',
     });
 
-    const [currentTag, setCurrentTag] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const [errors, setErrors] = useState<Record<string, string[]>>({});
-    const editorRef = useRef<any>(null);
+    const [tags, setTags] = useState<string[]>([]);
+    const [newTag, setNewTag] = useState('');
 
-    // Reset form ketika modal dibuka/tutup atau saat editing
-    useState(() => {
-        if (isOpen) {
-            if (editingArticle) {
-                setFormData({
-                    title: editingArticle.title || '',
-                    summary: editingArticle.summary || '',
-                    tags: editingArticle.tags || [],
-                });
-                // Set content untuk TinyMCE editor
-                if (editorRef.current) {
-                    editorRef.current.setContent(editingArticle.summary || '');
-                }
-            } else {
-                setFormData({
-                    title: '',
-                    summary: '',
-                    tags: [],
-                });
-                if (editorRef.current) {
-                    editorRef.current.setContent('');
-                }
-            }
-            setErrors({});
+    useEffect(() => {
+        if (editingArticle) {
+            setFormData({
+                title: editingArticle.title,
+                classification: editingArticle.classification,
+                source: editingArticle.source,
+                location: editingArticle.location,
+                status: editingArticle.status,
+                threat: editingArticle.threat,
+                content: editingArticle.content || '',
+            });
+            setTags(editingArticle.tags);
+        } else {
+            // Reset form for new article
+            setFormData({
+                title: '',
+                classification: 'CONFIDENTIAL',
+                source: 'OSINT',
+                location: '',
+                status: 'pending',
+                threat: 'low',
+                content: '',
+            });
+            setTags([]);
         }
-    }, [isOpen, editingArticle]);
+    }, [editingArticle, isOpen]);
 
-    const handleInputChange = (field: keyof Article, value: string) => {
+    const handleInputChange = (field: string, value: string) => {
         setFormData(prev => ({
             ...prev,
             [field]: value
         }));
+    };
 
-        // Clear error untuk field yang sedang diubah
-        if (errors[field]) {
-            setErrors(prev => ({
-                ...prev,
-                [field]: []
-            }));
+    const handleAddTag = () => {
+        if (newTag.trim() && !tags.includes(newTag.trim())) {
+            setTags(prev => [...prev, newTag.trim()]);
+            setNewTag('');
         }
     };
 
-    const handleEditorChange = (content: string) => {
-        setFormData(prev => ({
-            ...prev,
-            summary: content
-        }));
-
-        // Clear error untuk summary
-        if (errors.summary) {
-            setErrors(prev => ({
-                ...prev,
-                summary: []
-            }));
-        }
+    const handleRemoveTag = (tagToRemove: string) => {
+        setTags(prev => prev.filter(tag => tag !== tagToRemove));
     };
 
-    const addTag = () => {
-        if (currentTag.trim() && !formData.tags?.includes(currentTag.trim())) {
-            setFormData(prev => ({
-                ...prev,
-                tags: [...(prev.tags || []), currentTag.trim()]
-            }));
-            setCurrentTag('');
-        }
-    };
-
-    const removeTag = (tagToRemove: string) => {
-        setFormData(prev => ({
-            ...prev,
-            tags: prev.tags?.filter(tag => tag !== tagToRemove) || []
-        }));
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        setIsLoading(true);
-        setErrors({});
 
-        try {
-            // Prepare data untuk API
-            const articleData: Partial<Article> = {
-                title: formData.title?.toUpperCase() || '',
-                summary: formData.summary || '',
-                tags: formData.tags || [],
-                status: 'pending' // Default status
-            };
+        const articleData: Article = {
+            id: editingArticle?.id || `INT-2025-${String(Date.now()).slice(-3).padStart(3, '0')}`,
+            title: formData.title,
+            classification: formData.classification,
+            source: formData.source,
+            location: formData.location,
+            date: editingArticle?.date || new Date().toISOString().split('T')[0],
+            status: formData.status,
+            threat: formData.threat,
+            content: formData.content,
+            tags: tags,
+        };
 
-            let response: ApiResponse<Article>;
-
-            if (editingArticle) {
-                // Update existing article
-                response = await ArticleService.updateArticle(editingArticle.id!, articleData);
-            } else {
-                // Create new article
-                response = await ArticleService.createArticle(articleData);
-            }
-
-            if (response.success && response.data) {
-                // Call parent callback with the created/updated article
-                onSubmit(response.data);
-
-                // Reset form
-                resetForm();
-                onClose();
-            }
-        } catch (error: any) {
-            console.error('Error submitting article:', error);
-
-            // Handle validation errors dari Laravel
-            if (error.response && error.response.data && error.response.data.errors) {
-                setErrors(error.response.data.errors);
-            } else {
-                // Handle generic errors
-                setErrors({
-                    general: [error.message || 'An error occurred while submitting the article']
-                });
-            }
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const resetForm = () => {
-        setFormData({
-            title: '',
-            summary: '',
-            tags: [],
-        });
-        setCurrentTag('');
-        setErrors({});
-
-        if (editorRef.current) {
-            editorRef.current.setContent('');
-        }
-    };
-
-    const handleClose = () => {
-        resetForm();
+        onSubmit(articleData);
         onClose();
     };
 
-    const isFormValid = formData.title && formData.summary;
-
-    if (!isOpen) return null;
-
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-            <Card className="max-h-[90vh] w-full max-w-2xl overflow-y-auto">
-                <CardHeader className="flex flex-row items-center justify-between border-b border-border">
-                    <div>
-                        <CardTitle className="text-xl font-bold tracking-wider text-foreground">
-                            {editingArticle ? 'EDIT' : 'NEW'} INTELLIGENCE ARTICLE
-                        </CardTitle>
-                        <p className="text-sm text-muted-foreground">
-                            {editingArticle ? 'Edit existing' : 'Create a new'} classified intelligence article
-                        </p>
-                    </div>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleClose}
-                        className="text-muted-foreground hover:text-foreground"
-                        disabled={isLoading}
-                    >
-                        <X className="h-4 w-4" />
-                    </Button>
-                </CardHeader>
+        <Dialog open={isOpen} onOpenChange={onClose}>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                    <DialogTitle>
+                        {editingArticle ? 'Edit Article' : 'New Intelligence Article'}
+                    </DialogTitle>
+                </DialogHeader>
 
-                <CardContent className="p-6">
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* General Error */}
-                        {errors.general && (
-                            <div className="bg-red-50 border border-red-200 rounded-md p-3">
-                                <div className="text-sm text-red-800">
-                                    {errors.general[0]}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Title */}
-                        <div className="space-y-2">
-                            <Label htmlFor="title" className="text-sm font-medium tracking-wider text-muted-foreground">
-                                ARTICLE TITLE *
-                            </Label>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <Label htmlFor="title">Article Title</Label>
                             <Input
                                 id="title"
-                                value={formData.title || ''}
+                                value={formData.title}
                                 onChange={(e) => handleInputChange('title', e.target.value)}
-                                placeholder="Enter article title..."
-                                className={`font-mono uppercase ${errors.title ? 'border-red-500' : ''}`}
-                                required
-                                disabled={isLoading}
-                            />
-                            {errors.title && (
-                                <div className="text-sm text-red-600">
-                                    {errors.title[0]}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Summary with TinyMCE */}
-                        {/* <div className="space-y-2">
-                            <Label htmlFor="summary" className="text-sm font-medium tracking-wider text-muted-foreground">
-                                EXECUTIVE SUMMARY *
-                            </Label>
-                            <div className={`border rounded-md ${errors.summary ? 'border-red-500' : ''}`}>
-                                <Editor
-                                    onInit={(evt, editor) => editorRef.current = editor}
-                                    value={formData.summary || ''}
-                                    onEditorChange={handleEditorChange}
-                                    init={{
-                                        ...TINYMCE_CONFIG.init,
-                                        readonly: isLoading
-                                    }}
-                                />
-                            </div>
-                            {errors.summary && (
-                                <div className="text-sm text-red-600">
-                                    {errors.summary[0]}
-                                </div>
-                            )}
-                        </div> */}
-
-                        {/* Summary with textarea */}
-                        <div className="space-y-2">
-                            <Label htmlFor="summary" className="text-sm font-medium tracking-wider text-muted-foreground">
-                                EXECUTIVE SUMMARY *
-                            </Label>
-                            <Textarea
-                                id="summary"
-                                value={formData.summary}
-                                onChange={(e) => handleInputChange('summary', e.target.value)}
-                                placeholder="Provide a detailed summary of the intelligence article..."
-                                rows={4}
+                                placeholder="Enter article title"
                                 required
                             />
                         </div>
 
-                        {/* Tags */}
-                        <div className="space-y-2">
-                            <Label htmlFor="tags" className="text-sm font-medium tracking-wider text-muted-foreground">
-                                TAGS
-                            </Label>
-                            <div className="flex gap-2">
-                                <Input
-                                    id="tags"
-                                    value={currentTag}
-                                    onChange={(e) => setCurrentTag(e.target.value)}
-                                    placeholder="Add tag..."
-                                    onKeyPress={(e) => {
-                                        if (e.key === 'Enter') {
-                                            e.preventDefault();
-                                            addTag();
-                                        }
-                                    }}
-                                    disabled={isLoading}
-                                />
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={addTag}
-                                    disabled={!currentTag.trim() || isLoading}
-                                >
-                                    <Plus className="h-4 w-4" />
-                                </Button>
-                            </div>
-
-                            {formData.tags && formData.tags.length > 0 && (
-                                <div className="flex flex-wrap gap-2 mt-2">
-                                    {formData.tags.map((tag) => (
-                                        <Badge key={tag} variant="secondary" className="flex items-center gap-1">
-                                            {tag}
-                                            <button
-                                                type="button"
-                                                onClick={() => removeTag(tag)}
-                                                className="ml-1 text-muted-foreground hover:text-foreground"
-                                                disabled={isLoading}
-                                            >
-                                                <Minus className="h-3 w-3" />
-                                            </button>
-                                        </Badge>
-                                    ))}
-                                </div>
-                            )}
+                        <div>
+                            <Label htmlFor="location">Location</Label>
+                            <Input
+                                id="location"
+                                value={formData.location}
+                                onChange={(e) => handleInputChange('location', e.target.value)}
+                                placeholder="Enter location"
+                                required
+                            />
                         </div>
 
-                        {/* Form Actions */}
-                        <div className="flex gap-2 border-t border-border pt-4">
-                            <Button
-                                type="submit"
-                                disabled={!isFormValid || isLoading}
+                        <div>
+                            <Label htmlFor="classification">Classification</Label>
+                            <Select
+                                value={formData.classification}
+                                onValueChange={(value) => handleInputChange('classification', value)}
                             >
-                                {isLoading ? 'Saving...' : editingArticle ? 'Update Article' : 'Create Article'}
-                            </Button>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={handleClose}
-                                disabled={isLoading}
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="TOP SECRET">TOP SECRET</SelectItem>
+                                    <SelectItem value="SECRET">SECRET</SelectItem>
+                                    <SelectItem value="CONFIDENTIAL">CONFIDENTIAL</SelectItem>
+                                    <SelectItem value="UNCLASSIFIED">UNCLASSIFIED</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div>
+                            <Label htmlFor="source">Source</Label>
+                            <Select
+                                value={formData.source}
+                                onValueChange={(value) => handleInputChange('source', value)}
                             >
-                                Cancel
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="SIGINT">SIGINT</SelectItem>
+                                    <SelectItem value="HUMINT">HUMINT</SelectItem>
+                                    <SelectItem value="OSINT">OSINT</SelectItem>
+                                    <SelectItem value="DIPLOMATIC">DIPLOMATIC</SelectItem>
+                                    <SelectItem value="TECHNICAL">TECHNICAL</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div>
+                            <Label htmlFor="threat">Threat Level</Label>
+                            <Select
+                                value={formData.threat}
+                                onValueChange={(value) => handleInputChange('threat', value)}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="critical">Critical</SelectItem>
+                                    <SelectItem value="high">High</SelectItem>
+                                    <SelectItem value="medium">Medium</SelectItem>
+                                    <SelectItem value="low">Low</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div>
+                            <Label htmlFor="status">Status</Label>
+                            <Select
+                                value={formData.status}
+                                onValueChange={(value) => handleInputChange('status', value)}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="pending">Pending</SelectItem>
+                                    <SelectItem value="verified">Verified</SelectItem>
+                                    <SelectItem value="active">Active</SelectItem>
+                                    <SelectItem value="archived">Archived</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <Label>Article Content</Label>
+                        <div className="mt-2">
+                            <TinyMCEEditor
+                                value={formData.content}
+                                onEditorChange={(content) => handleInputChange('content', content)}
+                                height={300}
+                                placeholder="Enter detailed article content..."
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <Label>Tags</Label>
+                        <div className="flex gap-2 mb-2">
+                            <Input
+                                value={newTag}
+                                onChange={(e) => setNewTag(e.target.value)}
+                                placeholder="Add tag"
+                                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
+                            />
+                            <Button type="button" onClick={handleAddTag} variant="outline">
+                                Add Tag
                             </Button>
                         </div>
-                    </form>
-                </CardContent>
-            </Card>
-        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {tags.map((tag) => (
+                                <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                                    {tag}
+                                    <X
+                                        className="h-3 w-3 cursor-pointer"
+                                        onClick={() => handleRemoveTag(tag)}
+                                    />
+                                </Badge>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-4 border-t">
+                        <Button type="button" variant="outline" onClick={onClose}>
+                            Cancel
+                        </Button>
+                        <Button type="submit">
+                            {editingArticle ? 'Update Article' : 'Create Article'}
+                        </Button>
+                    </div>
+                </form>
+            </DialogContent>
+        </Dialog>
     );
 }

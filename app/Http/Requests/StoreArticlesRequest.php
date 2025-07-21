@@ -11,7 +11,7 @@ class StoreArticlesRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,15 @@ class StoreArticlesRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+            'tags' => 'nullable|array',
+            'status' => 'nullable|string|in:pending,verified,active',
+            'classification' => 'nullable|string|in:TOP SECRET,SECRET,CONFIDENTIAL',
+            'source' => 'nullable|string',
+            'location' => 'nullable|string',
+            'date' => 'nullable|date',
+            'threat' => 'nullable|string|in:critical,high,medium,low',
         ];
     }
 }

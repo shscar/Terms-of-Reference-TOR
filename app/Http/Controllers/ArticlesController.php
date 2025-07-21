@@ -5,12 +5,13 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
-use App\Models\Articles;
+use App\Models\Articles as Article;
 use App\Http\Requests\StoreArticlesRequest;
 use App\Http\Requests\UpdateArticlesRequest;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Log;
 
 class ArticlesController extends Controller
 {
@@ -19,10 +20,14 @@ class ArticlesController extends Controller
      */
     public function index()
     {
-        $articles = Articles::all();
+        $article = Article::all();
         return Inertia::render('dashboard/articles', [
-            'articles' => $articles
+            'article' => $article
         ]);
+        // return response()->json([
+        //     'success' => true,
+        //     'data' => Article::all(),
+        // ]);
     }
 
     /**
@@ -36,48 +41,55 @@ class ArticlesController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreArticlesRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-            'summary' => 'required|string',
-            'tags' => 'array',
-            'status' => 'string|in:pending,published,archived'
-        ]);
+        try {
+            // Validated data dari FormRequest otomatis divalidasi
+            $validated = $request->validated();
 
-        if ($validator->fails()) {
+            $article = Article::create($validated);
+
             return response()->json([
-                'status' => false,
-                'message' => 'Validation error',
-                'errors' => $validator->errors()
-            ], 422);
+                'success' => true,
+                'data' => $article,
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menyimpan artikel: ' . $e->getMessage(),
+            ], 500);
         }
-
-        $articles = Articles::create($request->all());
-        return response()->json([
-            'status' => true,
-            'message' => 'Articles created successfully',
-            'data' => $articles
-        ], 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Articles $articles, $id)
+    public function show($id)
     {
-        $articles = Articles::findOrFail($id);
-        return response()->json([
-            'status' => true,
-            'message' => 'Articles found successfully',
-            'data' => $articles
-        ], 200);
+        try {
+            $article = Article::findOrFail($id);
+
+            return response()->json([
+                'success' => true,
+                'data' => $article,
+            ], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Artikel tidak ditemukan.',
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil artikel: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Articles $articles)
+    public function edit(Article $article)
     {
         //
     }
@@ -85,122 +97,88 @@ class ArticlesController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id, Articles $articles)
+    public function update(UpdateArticlesRequest $request, $id)
     {
-        $data = $request->validate([
-            'title' => 'required|string|max:255',
-            'summary' => 'required|string',
-            'tags' => 'array',
-            'status' => 'string|in:pending,published,archived'
-        ]);
+        try {
+            $article = Article::findOrFail($id);
 
-        $articles->update($data);
+            // Debug: Log data yang diterima
+            Log::info('Request data:', $request->all());
+            Log::info('Validated data:', $request->validated());
+            Log::info('Article before update:', $article->toArray());
 
-        return response()->json([
-            'success' => true,
-            'data' => $articles,
-            'message' => 'Article updated successfully'
-        ]);
+            // Pastikan data validated
+            $validatedData = $request->validated();
 
+            // Handle tags jika berupa string JSON
+            if (isset($validatedData['tags']) && is_string($validatedData['tags'])) {
+                $validatedData['tags'] = json_decode($validatedData['tags'], true);
+            }
 
-        // $validator = Validator::make($request->all(), [
-        //     'title' => 'sometimes|required|string|max:255',
-        //     'content' => 'sometimes|required|string,' . $id,
-        // ]);
-        // // $request->validate([
-        // //     'title' => 'required|string|max:255',
-        // //     'content' => 'required|string',
-        // // ]);
+            // Update artikel
+            $updated = $article->update($validatedData);
 
-        // if ($validator->fails()) {
-        //     return response()->json([
-        //         'status' => false,
-        //         'message' => 'Validation error',
-        //         'errors' => $validator->errors()
-        //     ], 422);
-        // }
+            // Debug: Log hasil update
+            Log::info('Update result:', ['success' => $updated]);
+            Log::info('Article after update:', $article->fresh()->toArray());
 
-        // $articles = Articles::findOrFail($id);
-        // $articles->update($request->all());
+            return response()->json([
+                'success' => true,
+                'data' => $article->fresh(),
+                'debug' => [
+                    'updated_fields' => $validatedData,
+                    'update_result' => $updated,
+                ]
+            ], 200);
 
-        // return response()->json([
-        //     'status' => true,
-        //     'message' => 'articles updated successfully',
-        //     'data' => $articles
-        // ], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Artikel tidak ditemukan.',
+            ], 404);
+        } catch (\Exception $e) {
+            Log::error('Update error:', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
 
-
-        // $request->validate([
-        //     'title' => 'sometimes|required|string|max:255',
-        //     'content' => 'sometimes|required|string',
-        // ]);
-
-        // $articles = Articles::findOrFail($id);
-
-        // if ($request->has('title')) {
-        //     $articles->title = $request->input('title');
-        // }
-
-        // if ($request->has('content')) {
-        //     $articles->content = $request->input('content');
-        // }
-
-        // $articles->save();
-
-        // return response()->json([
-        //     'status' => true,
-        //     'message' => 'Article updated successfully',
-        //     'data' => $articles
-        // ], 200);
-
-
-        // try {
-        //     $request->validate([
-        //         'title' => 'sometimes|required|string|max:255',
-        //         'content' => 'sometimes|required|string',
-        //     ]);
-
-        //     $articles = Articles::findOrFail($id);
-
-        //     // Hanya memperbarui jika nilai tidak null
-        //     if ($request->has('title')) {
-        //         $articles->title = $request->input('title');
-        //     }
-        //     if ($request->has('content')) {
-        //         $articles->content = $request->input('content');
-        //     }
-
-        //     $articles->save();
-
-        //     return response()->json([
-        //         'status' => true,
-        //         'message' => 'Articles found successfully',
-        //         'data' => $articles
-        //     ], 200);
-        // } catch (ModelNotFoundException $e) {
-        //     return response()->json([
-        //         'status' => false,
-        //         'message' => 'Article not found'
-        //     ], 404);
-        // } catch (\Exception $e) {
-        //     return response()->json([
-        //         'status' => false,
-        //         'message' => 'An error occurred: ' . $e->getMessage()
-        //     ], 500);
-        // }
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengupdate artikel: ' . $e->getMessage(),
+                'debug' => [
+                    'error_trace' => $e->getTraceAsString()
+                ]
+            ], 500);
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Articles $articles, $id)
+    public function destroy($id)
     {
-        $articles = Articles::findOrFail($id);
-        $articles->delete();
+        try {
+            $article = Article::findOrFail($id);
+            $article->delete();
 
+            return response()->json([
+                'success' => true,
+                'message' => 'Artikel berhasil dihapus.',
+            ], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Artikel tidak ditemukan.',
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus artikel: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function getConfig()
+    {
         return response()->json([
-            'status' => true,
-            'message' => 'Articles deleted successfully'
-        ], 204);
+            'tinymce_api_key' => config('services.tinymce.api_key'),
+        ]);
     }
 }

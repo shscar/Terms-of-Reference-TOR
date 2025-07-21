@@ -10,5 +10,24 @@ class Articles extends Model
     /** @use HasFactory<\Database\Factories\ArticlesFactory> */
     use HasFactory;
 
-    protected $fillable = ['title', 'content'];
+    protected $table = 'articles';
+    protected $fillable = [
+        'title',
+        'summary',
+        'tags',
+        'status',
+        'classification',
+        'source',
+        'location',
+        'date',
+        'threat',
+    ];
+
+    protected $casts = [
+        'tags' => 'array',
+        'date' => 'date',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
 }

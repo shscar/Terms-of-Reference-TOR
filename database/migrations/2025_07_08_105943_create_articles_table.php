@@ -13,9 +13,14 @@ return new class extends Migration {
         Schema::create('articles', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->text('summary');
-            $table->json('tags');
-            $table->set('status', ['pending', 'published', 'archived'])->default('pending');
+            $table->text('content');
+            $table->json('tags')->nullable();
+            $table->string('status')->default('pending');
+            $table->string('classification')->nullable();
+            $table->string('source')->nullable();
+            $table->string('location')->nullable();
+            $table->date('date')->nullable();
+            $table->string('threat')->nullable();
             $table->timestamps();
         });
     }
