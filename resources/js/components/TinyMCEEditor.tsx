@@ -1,5 +1,5 @@
-import { Editor } from '@tinymce/tinymce-react';
 import { useRef } from 'react';
+import { Editor } from '@tinymce/tinymce-react';
 
 interface TinyMCEEditorProps {
     value?: string;
@@ -20,7 +20,7 @@ export default function TinyMCEEditor({
 
     return (
         <Editor
-            apiKey={import.meta.env.TINYMCE_API_KEY}
+            apiKey={import.meta.env.VITE_TINYMCE_API_KEY}
             onInit={(evt, editor) => (editorRef.current = editor)}
             value={value}
             onEditorChange={onEditorChange}
@@ -31,7 +31,7 @@ export default function TinyMCEEditor({
                 plugins: [
                     'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
                     'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                    'insertdatetime', 'media', 'table', 'help', 'wordcount'
+                    'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
                 ],
                 toolbar:
                     'undo redo | blocks | ' +
@@ -39,12 +39,12 @@ export default function TinyMCEEditor({
                     'alignright alignjustify | bullist numlist outdent indent | ' +
                     'removeformat | help',
                 content_style: `
-          body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            font-size: 14px;
-            line-height: 1.6;
-          }
-        `,
+                    body {
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                        font-size: 14px;
+                        line-height: 1.6;
+                    }
+                `,
                 placeholder: placeholder,
                 branding: false,
                 promotion: false,

@@ -27,6 +27,7 @@ type Article = {
     status: string;
     threat: string;
     summary: string;
+    // content: string;
     tags: string[];
 };
 
@@ -100,6 +101,12 @@ export default function IntelligencePage() {
 
     const handleNewArticle = (newArticle: Article) => {
         setArticles(prev => [newArticle, ...prev]);
+    };
+
+    const handleEditArticle = (editedArticle: Article) => {
+        setArticles(prev => prev.map(article =>
+            article.id === editedArticle.id ? editedArticle : article
+        ));
     };
 
     const getClassificationColor = (classification: string) => {
@@ -430,33 +437,14 @@ export default function IntelligencePage() {
                 )}
 
                 {/* New Article Modal */}
-                {/* <NewArticleModal
-                    isOpen={isNewArticleModalOpen}
-                    onClose={() => setIsNewArticleModalOpen(false)}
-                    onSubmit={handleNewArticle}
-                /> */}
-
-                {/* Untuk create */}
                 <NewArticleModal
                     isOpen={isNewArticleModalOpen}
-                    onClose={() => setIsNewArticleModalOpen(false)}
-                    onSubmit={(article) => {
-                        // Handle success
-                        console.log('Article created:', article);
-                        // Refresh list atau update state
+                    onClose={() => {
+                        setIsNewArticleModalOpen(false);
+                        setSelectedArticle(null); // Reset selected article
                     }}
-                />
-
-                {/* Untuk edit */}
-                <NewArticleModal
-                    isOpen={isNewArticleModalOpen}
-                    onClose={() => setIsNewArticleModalOpen(false)}
                     editingArticle={selectedArticle}
-                    onSubmit={(article) => {
-                        // Handle success
-                        console.log('Article updated:', article);
-                        // Update list atau refresh data
-                    }}
+                    onSubmit={selectedArticle ? handleEditArticle : handleNewArticle}
                 />
             </div>
         </AppLayout>
