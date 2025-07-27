@@ -7,7 +7,6 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-
 class ArticleSeeder extends Seeder
 {
     /**
@@ -17,41 +16,42 @@ class ArticleSeeder extends Seeder
     {
         $articles = [
             [
-                'article_id' => Str::uuid(),
+                // 'id' => Str::uuid(),
                 'title' => 'Intelijen Siber Asia Tenggara',
+                'content' => 'Konten lengkap terkait aktivitas siber di Asia Tenggara.',
+                'tags' => json_encode(['cybersecurity', 'asia', 'osint']),
+                'status' => 'verified',
                 'classification' => 'SECRET',
                 'source' => 'OSINT',
                 'location' => 'Jakarta, Indonesia',
-                'status' => 'verified',
+                'date' => now(),
                 'threat' => 'high',
-                'content' => 'Konten lengkap terkait aktivitas siber di Asia Tenggara.',
-                'tags' => json_encode(['cybersecurity', 'asia', 'osint']),
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'article_id' => Str::uuid(),
                 'title' => 'Operasi HUMINT di Timur Tengah',
+                'content' => 'Isi laporan lengkap operasi HUMINT di Irak.',
+                'tags' => json_encode(['humint', 'middle-east', 'critical']),
+                'status' => 'active',
                 'classification' => 'TOP SECRET',
                 'source' => 'HUMINT',
                 'location' => 'Baghdad, Irak',
-                'status' => 'active',
+                'date' => now(),
                 'threat' => 'critical',
-                'content' => 'Isi laporan lengkap operasi HUMINT di Irak.',
-                'tags' => json_encode(['humint', 'middle-east', 'critical']),
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'article_id' => Str::uuid(),
                 'title' => 'Laporan OSINT Perbatasan',
+                'content' => 'Isi laporan OSINT mengenai Papua.',
+                'tags' => json_encode(['osint', 'border', 'papua']),
+                'status' => 'pending',
                 'classification' => 'CONFIDENTIAL',
                 'source' => 'OSINT',
                 'location' => 'Papua, Indonesia',
-                'status' => 'pending',
+                'date' => now(),
                 'threat' => 'medium',
-                'content' => 'Isi laporan OSINT mengenai Papua.',
-                'tags' => json_encode(['osint', 'border', 'papua']),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]

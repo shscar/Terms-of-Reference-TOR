@@ -173,7 +173,7 @@ const Navbar = () => {
                                 <Button
                                     variant="outline"
                                     onClick={() => {
-                                        // (window.location.href = route('login'))
+                                        (window.location.href = route('login'))
                                     }}
                                     className="h-9 border border-primary text-primary"
                                 >
@@ -182,7 +182,7 @@ const Navbar = () => {
                                 <Button
                                     variant="default"
                                     onClick={() => {
-                                        // (window.location.href = route('register'))
+                                        (window.location.href = route('register'))
                                     }}
                                     className={`h-9 border ${isDarkMode ? 'border-white' : 'border-black'}`}
                                 >
@@ -291,7 +291,7 @@ const Navbar = () => {
                                             <Button
                                                 variant="ghost"
                                                 onClick={() => {
-                                                    // (window.location.href = route('login'))
+                                                    (window.location.href = route('login'))
                                                 }}
                                                 className="w-full h-10"
                                             >
@@ -299,7 +299,7 @@ const Navbar = () => {
                                             </Button>
                                             <Button
                                                 onClick={() => {
-                                                    // (window.location.href = route('register'))
+                                                    (window.location.href = route('register'))
                                                 }}
                                                 className="w-full h-10"
                                             >

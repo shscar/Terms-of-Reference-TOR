@@ -24,7 +24,7 @@ class UpdateArticlesRequest extends FormRequest
         return [
             'title' => 'sometimes|required|string|max:255',
             'content' => 'sometimes|required|string',
-            'tags' => 'nullable|json', // atau 'nullable|array' jika sudah dalam bentuk array
+            'tags' => 'nullable|array',
             'status' => 'nullable|string|in:pending,verified,active',
             'classification' => 'nullable|string|in:TOP SECRET,SECRET,CONFIDENTIAL',
             'source' => 'nullable|string',

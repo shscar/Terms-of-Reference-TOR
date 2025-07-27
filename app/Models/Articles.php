@@ -13,7 +13,7 @@ class Articles extends Model
     protected $table = 'articles';
     protected $fillable = [
         'title',
-        'summary',
+        'content',
         'tags',
         'status',
         'classification',

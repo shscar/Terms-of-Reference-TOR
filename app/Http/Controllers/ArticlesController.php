@@ -20,14 +20,14 @@ class ArticlesController extends Controller
      */
     public function index()
     {
-        $article = Article::all();
-        return Inertia::render('dashboard/articles', [
-            'article' => $article
-        ]);
-        // return response()->json([
-        //     'success' => true,
-        //     'data' => Article::all(),
+        // $article = Article::all();
+        // return Inertia::render('dashboard/articles', [
+        //     'article' => $article
         // ]);
+        return response()->json([
+            'success' => true,
+            'data' => Article::all(),
+        ]);
     }
 
     /**
