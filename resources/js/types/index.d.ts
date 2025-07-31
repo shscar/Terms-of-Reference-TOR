@@ -41,3 +41,16 @@ export interface User {
     updated_at: string;
     [key: string]: unknown; // This allows for additional properties...
 }
+
+export type Article = {
+    id: string;
+    title: string;
+    classification: string;
+    source: string;
+    location: string;
+    date: string;
+    status: string;
+    threat: string;
+    content: string | undefined;
+    tags: string[];
+};

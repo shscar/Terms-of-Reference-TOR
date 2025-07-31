@@ -20,14 +20,14 @@ class ArticlesController extends Controller
      */
     public function index()
     {
-        // $article = Article::all();
-        // return Inertia::render('dashboard/articles', [
-        //     'article' => $article
-        // ]);
-        return response()->json([
-            'success' => true,
-            'data' => Article::all(),
+        $article = Article::all();
+        return Inertia::render('dashboard/articles', [
+            'article' => $article
         ]);
+        // return response()->json([
+        //     'success' => true,
+        //     'data' => Article::all(),
+        // ]);
     }
 
     /**
@@ -102,23 +102,17 @@ class ArticlesController extends Controller
         try {
             $article = Article::findOrFail($id);
 
-            // Debug: Log data yang diterima
             Log::info('Request data:', $request->all());
             Log::info('Validated data:', $request->validated());
             Log::info('Article before update:', $article->toArray());
 
-            // Pastikan data validated
             $validatedData = $request->validated();
 
-            // Handle tags jika berupa string JSON
             if (isset($validatedData['tags']) && is_string($validatedData['tags'])) {
                 $validatedData['tags'] = json_decode($validatedData['tags'], true);
             }
-
-            // Update artikel
             $updated = $article->update($validatedData);
 
-            // Debug: Log hasil update
             Log::info('Update result:', ['success' => $updated]);
             Log::info('Article after update:', $article->fresh()->toArray());
 

@@ -1,14 +1,10 @@
-import React, { useState, useEffect } from 'react';
-// import { type SharedData } from '@/types';
-import { usePage } from '@inertiajs/react';
+import React, { useState } from 'react';
+// import { usePage } from '@inertiajs/react';
 import {
     Menu,
     X,
-    // Search,
-    Bell,
+    // Bell,
     ChevronDown,
-    Moon,
-    Sun
 } from 'lucide-react';
 import {
     NavigationMenu,
@@ -18,44 +14,15 @@ import {
     NavigationMenuList,
     NavigationMenuTrigger,
 } from '@/components/ui/navigation-menu';
-// import {
-//     DropdownMenu,
-//     DropdownMenuContent,
-//     DropdownMenuItem,
-//     DropdownMenuLabel,
-//     DropdownMenuSeparator,
-//     DropdownMenuTrigger,
-// } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-// import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+// import { Badge } from '@/components/ui/badge';
+import AppearanceToggleDropdown from '@/components/appearance-dropdown';
 
 const Navbar = () => {
-
-    // const { auth } = usePage<SharedData>().props;
-
     const [isOpen, setIsOpen] = useState(false);
     const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
+
     const toggleMobile = () => setIsOpen(!isOpen);
-
-    const [isDarkMode, setIsDarkMode] = useState(() => {
-        const savedTheme = localStorage.getItem('appearance');
-        return savedTheme === 'dark';
-    });
-
-    const toggleDarkMode = () => {
-        setIsDarkMode(prevMode => {
-            const newMode = !prevMode;
-            localStorage.setItem('appearance', newMode ? 'dark' : 'light');
-            return newMode;
-        });
-    };
-
-    // Apply dark mode to document
-    useEffect(() => {
-        // Mengatur tema saat komponen dirender
-        document.documentElement.classList = isDarkMode ? 'dark' : 'light';
-    }, [isDarkMode]);
 
     const toggleMobileItem = (title: string) => {
         setExpandedItems(prev => ({
@@ -142,53 +109,31 @@ const Navbar = () => {
                         </NavigationMenu>
                     </div>
 
-                    {/* Search Bar */}
-                    {/* <div className="hidden md:flex flex-1 max-w-sm mx-8">
-                        <div className="relative w-full">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                            <Input
-                                placeholder="Search..."
-                                className="pl-10 w-full"
-                            />
-                        </div>
-                    </div> */}
-
                     {/* Desktop Actions */}
                     <div className="hidden md:flex items-center space-x-4">
                         {/* Theme Toggle */}
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={toggleDarkMode}
-                            className="h-9 w-9"
-                        >
-                            {isDarkMode ? (
-                                <Sun className="h-4 w-4" />
-                            ) : (
-                                <Moon className="h-4 w-4" />
-                            )}
-                        </Button>
+                        <AppearanceToggleDropdown />
 
-                            <div className="flex items-center space-x-2">
-                                <Button
-                                    variant="outline"
-                                    onClick={() => {
-                                        (window.location.href = route('login'))
-                                    }}
-                                    className="h-9 border border-primary text-primary"
-                                >
-                                    Login
-                                </Button>
-                                <Button
-                                    variant="default"
-                                    onClick={() => {
-                                        (window.location.href = route('register'))
-                                    }}
-                                    className={`h-9 border ${isDarkMode ? 'border-white' : 'border-black'}`}
-                                >
-                                    Register
-                                </Button>
-                            </div>
+                        <div className="flex items-center space-x-2">
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    (window.location.href = route('login'))
+                                }}
+                                className="h-9 border border-primary text-primary"
+                            >
+                                Login
+                            </Button>
+                            <Button
+                                variant="default"
+                                onClick={() => {
+                                    (window.location.href = route('register'))
+                                }}
+                                className="h-9"
+                            >
+                                Register
+                            </Button>
+                        </div>
                     </div>
 
                     {/* Mobile Menu Button */}
@@ -212,15 +157,6 @@ const Navbar = () => {
                 {isOpen && (
                     <div className="md:hidden">
                         <div className="px-2 pt-2 pb-3 space-y-1 border-t">
-                            {/* Mobile Search */}
-                            {/* <div className="relative mb-4">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                                <Input
-                                    placeholder="Search..."
-                                    className="pl-10 w-full"
-                                />
-                            </div> */}
-
                             {/* Mobile Navigation Items */}
                             {navItems.map((item) => (
                                 <div key={item.title} className="space-y-1">
@@ -262,59 +198,33 @@ const Navbar = () => {
                             {/* Mobile Auth/User Actions */}
                             <div className="border-t pt-4 mt-4 space-y-1">
                                 {/* Theme Toggle */}
-                                <Button
-                                    variant="ghost"
-                                    className="w-full justify-start h-10"
-                                    onClick={toggleDarkMode}
-                                >
-                                    {isDarkMode ? (
-                                        <>
-                                            <Sun className="mr-2 h-4 w-4" />
-                                            Light Mode
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Moon className="mr-2 h-4 w-4" />
-                                            Dark Mode
-                                        </>
-                                    )}
-                                </Button>
+                                <AppearanceToggleDropdown className="w-full" />
 
-                                    <>
-                                        {/* <Button variant="ghost" className="w-full justify-start h-10">
-                                            <Bell className="mr-2 h-4 w-4" />
-                                            Notifications
-                                            <Badge className="ml-auto">3</Badge>
-                                        </Button> */}
-
-                                        <div className="space-x-2">
-                                            <Button
-                                                variant="ghost"
-                                                onClick={() => {
-                                                    (window.location.href = route('login'))
-                                                }}
-                                                className="w-full h-10"
-                                            >
-                                                Login
-                                            </Button>
-                                            <Button
-                                                onClick={() => {
-                                                    (window.location.href = route('register'))
-                                                }}
-                                                className="w-full h-10"
-                                            >
-                                                Register
-                                            </Button>
-                                        </div>
-                                    </>
-
+                                <div className="space-y-2">
+                                    <Button
+                                        variant="ghost"
+                                        onClick={() => {
+                                            (window.location.href = route('login'))
+                                        }}
+                                        className="w-full h-10"
+                                    >
+                                        Login
+                                    </Button>
+                                    <Button
+                                        onClick={() => {
+                                            (window.location.href = route('register'))
+                                        }}
+                                        className="w-full h-10"
+                                    >
+                                        Register
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 )}
             </div>
         </nav>
-
     );
 };
 
