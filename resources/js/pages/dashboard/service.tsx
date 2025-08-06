@@ -275,7 +275,7 @@ export default function Service() {
                 {selectedOperation && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
                         <Card className="max-h-[90vh] w-full max-w-4xl overflow-y-auto">
-                            <CardHeader className="flex flex-row items-center justify-between border-b border-border">
+                            <CardHeader className="flex flex-row items-center justify-between border-b border-border pb-4">
                                 <div>
                                     <CardTitle className="text-xl font-bold tracking-wider text-foreground">{selectedOperation.name}</CardTitle>
                                     <p className="font-mono text-sm text-muted-foreground">{selectedOperation.id}</p>

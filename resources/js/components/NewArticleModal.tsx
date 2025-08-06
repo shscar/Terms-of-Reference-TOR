@@ -1,308 +1,236 @@
-import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Article } from '@/types';
+import { useState } from 'react';
 import { X } from 'lucide-react';
 import TinyMCEEditor from './TinyMCEEditor';
-
-interface Article {
-    id: string;
-    title: string;
-    classification: string;
-    source: string;
-    location: string;
-    date: string;
-    status: string;
-    threat: string;
-    content?: string;
-    tags: string[];
-}
 
 interface NewArticleModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSubmit: (article: Article) => void;
-    editingArticle?: Article | null;
 }
 
-export default function NewArticleModal({
-    isOpen,
-    onClose,
-    onSubmit,
-    editingArticle = null,
-}: NewArticleModalProps) {
-    const [formData, setFormData] = useState({
+export default function NewArticleModal({ isOpen, onClose, onSubmit }: NewArticleModalProps) {
+    const [formData, setFormData] = useState < Partial < Article >> ({
         title: '',
-        classification: 'CONFIDENTIAL',
-        source: 'OSINT',
-        location: '',
-        status: 'pending',
-        threat: 'low',
         content: '',
+        classification: 'UNCLASSIFIED',
+        threat: 'LOW',
+        status: 'DRAFT',
+        source: '',
+        location: '',
+        tags: [],
+        date: new Date().toISOString().split('T')[0],
     });
-
-    const [tags, setTags] = useState<string[]>([]);
-    const [newTag, setNewTag] = useState('');
-
-    useEffect(() => {
-        if (editingArticle) {
-            setFormData({
-                title: editingArticle.title,
-                classification: editingArticle.classification,
-                source: editingArticle.source,
-                location: editingArticle.location,
-                status: editingArticle.status,
-                threat: editingArticle.threat,
-                content: editingArticle.content || '',
-            });
-            setTags(editingArticle.tags);
-        } else {
-            // Reset form for new article
-            setFormData({
-                title: '',
-                classification: 'CONFIDENTIAL',
-                source: 'OSINT',
-                location: '',
-                status: 'pending',
-                threat: 'low',
-                content: '',
-            });
-            setTags([]);
-        }
-    }, [editingArticle, isOpen]);
-
-    const handleInputChange = (field: string, value: string) => {
-        setFormData(prev => ({
-            ...prev,
-            [field]: value
-        }));
-    };
-
-    const handleAddTag = () => {
-        if (newTag.trim() && !tags.includes(newTag.trim())) {
-            setTags(prev => [...prev, newTag.trim()]);
-            setNewTag('');
-        }
-    };
-
-    const handleRemoveTag = (tagToRemove: string) => {
-        setTags(prev => prev.filter(tag => tag !== tagToRemove));
-    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-
-        const articleData: Article = {
-            id: editingArticle?.id || `INT-2025-${String(Date.now()).slice(-3).padStart(3, '0')}`,
-            title: formData.title,
-            classification: formData.classification,
-            source: formData.source,
-            location: formData.location,
-            date: editingArticle?.date || new Date().toISOString().split('T')[0],
-            status: formData.status,
-            threat: formData.threat,
-            content: formData.content,
-            tags: tags,
+        const newArticle: Article = {
+            id: `article-${Date.now()}`, // Temporary ID, replace with proper ID generation
+            title: formData.title || 'Untitled Article',
+            content: formData.content || '',
+            classification: formData.classification || 'UNCLASSIFIED',
+            threat: formData.threat || 'LOW',
+            status: formData.status || 'DRAFT',
+            source: formData.source || '',
+            location: formData.location || '',
+            tags: formData.tags || [],
+            date: formData.date || new Date().toISOString().split('T')[0],
         };
-
-        onSubmit(articleData);
+        onSubmit(newArticle);
         onClose();
+        setFormData({
+            title: '',
+            content: '',
+            classification: 'UNCLASSIFIED',
+            threat: 'LOW',
+            status: 'DRAFT',
+            source: '',
+            location: '',
+            tags: [],
+            date: new Date().toISOString().split('T')[0],
+        });
     };
 
-    return (
-        <>
-            <Dialog open={isOpen} onOpenChange={onClose}>
-                <DialogContent className="max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-lg shadow-lg">
-                    <DialogHeader className="flex flex-row items-center justify-between border-b border-border pb-4">
-                        <div>
-                            <DialogTitle className="text-xl font-bold tracking-wider text-foreground">
-                                {editingArticle ? 'Edit Article' : 'New Intelligence Article'}
-                            </DialogTitle>
-                            {editingArticle && (
-                                <p className="font-mono text-sm text-muted-foreground">{editingArticle.id}</p>
-                            )}
-                        </div>
-                    </DialogHeader>
+    const [newTag, setNewTag] = useState('');
+    const handleAddTag = () => {
+        if (newTag.trim()) {
+            const updatedTags = [...(formData.tags || []), newTag.trim()];
+            setFormData(prev => ({ ...prev, tags: updatedTags }));
+            setNewTag('');
+        }
+    };
+    const handleRemoveTag = (tagToRemove: string) => {
+        const updatedTags = (formData.tags || []).filter(tag => tag !== tagToRemove);
+        setFormData(prev => ({ ...prev, tags: updatedTags }));
+    };
 
-                    <form onSubmit={handleSubmit} className="space-y-6 p-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+            <Card className="max-h-[90vh] w-full max-w-4xl overflow-y-auto">
+                <CardHeader className="flex flex-row items-center justify-between border-b border-border pb-4">
+                    <CardTitle className="text-xl font-bold tracking-wider text-foreground">
+                        Create New Article
+                    </CardTitle>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={onClose}
+                        className="text-muted-foreground hover:text-foreground"
+                    >
+                        ✕
+                    </Button>
+                </CardHeader>
+                <CardContent className="space-y-6 p-6">
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <div className="space-y-4">
                                 <div>
-                                    <Label htmlFor="title" className="text-sm font-medium tracking-wider text-muted-foreground">
-                                        ARTICLE TITLE
-                                    </Label>
+                                    <Label htmlFor="title" className="text-sm text-muted-foreground">Title</Label>
                                     <Input
                                         id="title"
                                         value={formData.title}
-                                        onChange={(e) => handleInputChange('title', e.target.value)}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                                         placeholder="Enter article title"
-                                        className="mt-2"
-                                        required
+                                        className="mt-1"
                                     />
                                 </div>
-
                                 <div>
-                                    <Label htmlFor="location" className="text-sm font-medium tracking-wider text-muted-foreground">
-                                        LOCATION
-                                    </Label>
+                                    <Label htmlFor="source" className="text-sm text-muted-foreground">Source</Label>
+                                    <Input
+                                        id="source"
+                                        value={formData.source}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, source: e.target.value }))}
+                                        placeholder="Enter source"
+                                        className="mt-1"
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="location" className="text-sm text-muted-foreground">Location</Label>
                                     <Input
                                         id="location"
                                         value={formData.location}
-                                        onChange={(e) => handleInputChange('location', e.target.value)}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
                                         placeholder="Enter location"
-                                        className="mt-2"
-                                        required
+                                        className="mt-1"
                                     />
-                                </div>
-
-                                <div>
-                                    <Label htmlFor="classification" className="text-sm font-medium tracking-wider text-muted-foreground">
-                                        CLASSIFICATION
-                                    </Label>
-                                    <Select
-                                        value={formData.classification}
-                                        onValueChange={(value) => handleInputChange('classification', value)}
-                                    >
-                                        <SelectTrigger className="mt-2">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="TOP SECRET">TOP SECRET</SelectItem>
-                                            <SelectItem value="SECRET">SECRET</SelectItem>
-                                            <SelectItem value="CONFIDENTIAL">CONFIDENTIAL</SelectItem>
-                                            <SelectItem value="UNCLASSIFIED">UNCLASSIFIED</SelectItem>
-                                        </SelectContent>
-                                    </Select>
                                 </div>
                             </div>
 
                             <div className="space-y-4">
                                 <div>
-                                    <Label htmlFor="source" className="text-sm font-medium tracking-wider text-muted-foreground">
-                                        SOURCE TYPE
-                                    </Label>
-                                    <Select
-                                        value={formData.source}
-                                        onValueChange={(value) => handleInputChange('source', value)}
+                                    <Label htmlFor="classification" className="text-sm text-muted-foreground">Classification</Label>
+                                    <select
+                                        id="classification"
+                                        value={formData.classification}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, classification: e.target.value }))}
+                                        className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                                     >
-                                        <SelectTrigger className="mt-2">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="SIGINT">SIGINT</SelectItem>
-                                            <SelectItem value="HUMINT">HUMINT</SelectItem>
-                                            <SelectItem value="OSINT">OSINT</SelectItem>
-                                            <SelectItem value="DIPLOMATIC">DIPLOMATIC</SelectItem>
-                                            <SelectItem value="TECHNICAL">TECHNICAL</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                        <option value="UNCLASSIFIED">UNCLASSIFIED</option>
+                                        <option value="CONFIDENTIAL">CONFIDENTIAL</option>
+                                        <option value="SECRET">SECRET</option>
+                                        <option value="TOP SECRET">TOP SECRET</option>
+                                    </select>
                                 </div>
-
                                 <div>
-                                    <Label htmlFor="threat" className="text-sm font-medium tracking-wider text-muted-foreground">
-                                        THREAT LEVEL
-                                    </Label>
-                                    <Select
+                                    <Label htmlFor="threat" className="text-sm text-muted-foreground">Threat Level</Label>
+                                    <select
+                                        id="threat"
                                         value={formData.threat}
-                                        onValueChange={(value) => handleInputChange('threat', value)}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, threat: e.target.value }))}
+                                        className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                                     >
-                                        <SelectTrigger className="mt-2">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="critical">Critical</SelectItem>
-                                            <SelectItem value="high">High</SelectItem>
-                                            <SelectItem value="medium">Medium</SelectItem>
-                                            <SelectItem value="low">Low</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                        <option value="LOW">LOW</option>
+                                        <option value="MEDIUM">MEDIUM</option>
+                                        <option value="HIGH">HIGH</option>
+                                        <option value="CRITICAL">CRITICAL</option>
+                                    </select>
                                 </div>
-
                                 <div>
-                                    <Label htmlFor="status" className="text-sm font-medium tracking-wider text-muted-foreground">
-                                        STATUS
-                                    </Label>
-                                    <Select
+                                    <Label htmlFor="status" className="text-sm text-muted-foreground">Status</Label>
+                                    <select
+                                        id="status"
                                         value={formData.status}
-                                        onValueChange={(value) => handleInputChange('status', value)}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
+                                        className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                                     >
-                                        <SelectTrigger className="mt-2">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="pending">Pending</SelectItem>
-                                            <SelectItem value="verified">Verified</SelectItem>
-                                            <SelectItem value="active">Active</SelectItem>
-                                            <SelectItem value="archived">Archived</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                        <option value="DRAFT">DRAFT</option>
+                                        <option value="PENDING">PENDING</option>
+                                        <option value="VERIFIED">VERIFIED</option>
+                                        <option value="PUBLISHED">PUBLISHED</option>
+                                        <option value="ARCHIVED">ARCHIVED</option>
+                                    </select>
                                 </div>
                             </div>
+
+                            {/* <div>
+                                <div className="space-y-4">
+                                    <div>
+                                        <Label htmlFor="date" className="text-sm text-muted-foreground">Date</Label>
+                                        <Input
+                                            id="date"
+                                            type="date"
+                                            value={formData.date}
+                                            onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                                            className="mt-1"
+                                        />
+                                    </div>
+                                </div>
+                            </div> */}
                         </div>
 
-                        <div className="space-y-4">
-                            <div>
-                                <Label className="text-sm font-medium tracking-wider text-muted-foreground">
-                                    ARTICLE CONTENT
-                                </Label>
-                                <div className="mt-2">
+                        <div className="grid grid-cols-1 gap-full md:grid-cols-1">
+                            <div className="space-y-4">
+                                <div>
+                                    <Label htmlFor="content" className="text-sm text-muted-foreground">Content</Label>
                                     <TinyMCEEditor
                                         value={formData.content}
-                                        onEditorChange={(content) => handleInputChange('content', content)}
+                                        onEditorChange={(content) => setFormData(prev => ({ ...prev, content }))}
                                         height={300}
                                         placeholder="Enter detailed article content..."
                                     />
                                 </div>
-                            </div>
-
-                            <div>
-                                <Label className="text-sm font-medium tracking-wider text-muted-foreground">
-                                    TAGS
-                                </Label>
-                                <div className="flex gap-2 mt-2 mb-2">
-                                    <Input
-                                        value={newTag}
-                                        onChange={(e) => setNewTag(e.target.value)}
-                                        placeholder="Add tag"
-                                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
-                                    />
-                                    <Button type="button" onClick={handleAddTag} variant="outline">
-                                        Add Tag
-                                    </Button>
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                    {tags.map((tag) => (
-                                        <Badge key={tag} variant="secondary" className="flex items-center gap-1">
-                                            {tag}
-                                            <X
-                                                className="h-3 w-3 cursor-pointer"
-                                                onClick={() => handleRemoveTag(tag)}
-                                            />
-                                        </Badge>
-                                    ))}
+                                <div>
+                                    <Label htmlFor="status" className="text-sm text-muted-foreground">TAGS</Label>
+                                    <div className="flex gap-2 mt-2 mb-2">
+                                        <Input
+                                            value={newTag}
+                                            onChange={(e) => setNewTag(e.target.value)}
+                                            placeholder="Add tag"
+                                            onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
+                                        />
+                                        <Button type="button" onClick={handleAddTag} variant="outline">
+                                            Add Tag
+                                        </Button>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                        {(formData.tags ?? []).map((tag) => (
+                                            <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                                                {tag}
+                                                <X
+                                                    className="h-3 w-3 cursor-pointer"
+                                                    onClick={() => handleRemoveTag(tag)}
+                                                />
+                                            </Badge>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="flex justify-end gap-2 pt-4 border-t border-border">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={onClose}
-                                className="text-muted-foreground hover:text-foreground"
-                            >
-                                Cancel
-                            </Button>
-                            <Button type="submit">
-                                {editingArticle ? 'Update Article' : 'Create Article'}
-                            </Button>
+                        <div className="flex gap-2 border-t border-border pt-4">
+                            <Button type="submit">Create Article</Button>
+                            <Button variant="outline" onClick={onClose}>Cancel</Button>
                         </div>
                     </form>
-                </DialogContent>
-            </Dialog>
-        </>
+                </CardContent>
+            </Card>
+        </div>
     );
 }

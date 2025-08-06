@@ -134,10 +134,8 @@ export default function IntelligencePage({ article: initialArticles }: Props) {
         }
         if (typeof tags === 'string') {
             try {
-                // Try to parse JSON string
                 return JSON.parse(tags);
             } catch {
-                // If not JSON, split by comma
                 return tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
             }
         }
@@ -149,9 +147,9 @@ export default function IntelligencePage({ article: initialArticles }: Props) {
         if (!dateString) return 'N/A';
         try {
             const date = new Date(dateString);
-            return date.toISOString().split('T')[0]; // Returns YYYY-MM-DD format
+            return date.toISOString().split('T')[0];
         } catch {
-            return dateString; // Return original if parsing fails
+            return dateString;
         }
     };
 
@@ -316,7 +314,7 @@ export default function IntelligencePage({ article: initialArticles }: Props) {
                 {selectedArticle && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
                         <Card className="max-h-[90vh] w-full max-w-4xl overflow-y-auto">
-                            <CardHeader className="flex flex-row items-center justify-between border-b border-border">
+                            <CardHeader className="flex flex-row items-center justify-between border-b border-border pb-4">
                                 <div>
                                     <CardTitle className="text-xl font-bold tracking-wider text-foreground">
                                         {selectedArticle.title || 'Untitled Article'}
@@ -433,9 +431,8 @@ export default function IntelligencePage({ article: initialArticles }: Props) {
                         setIsNewArticleModalOpen(false);
                         setSelectedArticle(null);
                     }}
-                    editingArticle={selectedArticle}
+                    // editingArticle={selectedArticle}
                     onSubmit={selectedArticle ? handleEditArticle : handleNewArticle}
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
                 />
             </div>
         </AppLayout>
